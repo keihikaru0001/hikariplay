@@ -307,38 +307,60 @@ resize(); window.addEventListener("resize", resize);
 
 let accentColor = "#B39DDB";
 
-// ---- パーティクル（全画面を舞う光の粒）----
+// ---- カラフル浮遊バルーン ----
+const BALLOON_COLORS = [
+  "#4A90D9","#60a5fa","#93c5fd",   // blue
+  "#F5A623","#fbbf24","#fcd34d",   // yellow/orange
+  "#B39DDB","#c4b5fd","#ddd6fe",   // purple
+  "#f472b6","#f9a8d4",             // pink
+  "#34d399","#6ee7b7",             // green
+  "#fb7185","#fda4af",             // red
+  "#38bdf8","#7dd3fc",             // sky
+];
 const PARTS = [];
 class Part {
-  constructor(){ this.init(); }
-  init(){
+  constructor(){ this.init(true); }
+  init(scatter){
     this.x = Math.random()*W;
-    this.y = H + 10;
-    this.vx = (Math.random()-0.5)*1.2;
-    this.vy = -(Math.random()*2.5+0.8);
-    this.r = Math.random()*2.5+0.5;
-    this.alpha = Math.random()*0.8+0.2;
-    this.life = Math.random()*300+150;
-    this.age = 0;
+    this.y = scatter ? Math.random()*H : H + Math.random()*60 + 20;
+    this.r = Math.random()*18+8;          // 大きめの円
+    this.vx = (Math.random()-0.5)*0.6;    // 左右ゆらゆら
+    this.vy = -(Math.random()*0.8+0.3);   // ゆっくり上昇
+    this.wobble = Math.random()*Math.PI*2;// 横揺れ位相
+    this.wobbleSpeed = Math.random()*0.03+0.01;
+    this.color = BALLOON_COLORS[Math.floor(Math.random()*BALLOON_COLORS.length)];
+    this.alpha = Math.random()*0.45+0.25;
+    this.life = Math.random()*400+250;
+    this.age = scatter ? Math.random()*300 : 0;
   }
   tick(){
-    this.x+=this.vx; this.y+=this.vy;
-    this.vy -= 0.005; // 加速
+    this.wobble += this.wobbleSpeed;
+    this.x += this.vx + Math.sin(this.wobble)*0.5;
+    this.y += this.vy;
     this.age++;
-    if(this.age>this.life||this.y<-20) this.init();
+    if(this.age>this.life || this.y<-this.r*2) this.init(false);
   }
   draw(){
-    const a = this.alpha*(1-this.age/this.life);
+    const ratio = 1 - this.age/this.life;
+    const a = this.alpha * ratio;
     cx.save();
-    cx.globalAlpha=a;
-    cx.fillStyle=accentColor;
-    cx.shadowBlur=12; cx.shadowColor=accentColor;
-    cx.beginPath(); cx.arc(this.x,this.y,this.r,0,Math.PI*2); cx.fill();
+    cx.globalAlpha = a;
+    // 円本体
+    cx.fillStyle = this.color;
+    cx.shadowBlur = 24; cx.shadowColor = this.color;
+    cx.beginPath(); cx.arc(this.x, this.y, this.r, 0, Math.PI*2); cx.fill();
+    // 内側ハイライト
+    const g = cx.createRadialGradient(this.x-this.r*0.3, this.y-this.r*0.3, 0, this.x, this.y, this.r);
+    g.addColorStop(0,"rgba(255,255,255,0.35)");
+    g.addColorStop(1,"rgba(255,255,255,0)");
+    cx.globalAlpha = a*0.8;
+    cx.fillStyle = g;
+    cx.beginPath(); cx.arc(this.x, this.y, this.r, 0, Math.PI*2); cx.fill();
     cx.restore();
   }
 }
-for(let i=0;i<200;i++){
-  const p=new Part(); p.age=Math.random()*p.life; PARTS.push(p);
+for(let i=0;i<120;i++){
+  const p=new Part(); PARTS.push(p);
 }
 
 // ---- ペンライトビーム（画面を横切る帯）----
