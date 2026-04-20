@@ -5,117 +5,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ECHO | 光貨で楽しむ対話の場</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #000; color: #fff; min-height: 100vh; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background:#000; color:#fff; min-height:100vh; overflow-x:hidden; }
 
-    /* SELECT */
-    #screen-select { display: flex; flex-direction: column; min-height: 100vh; background: linear-gradient(to bottom, #0a0a1a, #000); }
-    .header { text-align: center; padding: 52px 16px 20px; }
-    .header-emoji { font-size: 44px; }
-    .header-title { font-size: 26px; font-weight: bold; letter-spacing: 8px; margin: 8px 0 4px; }
-    .header-sub { color: #94a3b8; font-size: 13px; }
-    .balance-badge { margin: 16px auto 0; display: inline-flex; align-items: center; gap: 10px; background: #1e293b; border-radius: 999px; padding: 10px 24px; }
-    .balance-star { color: #facc15; font-size: 16px; }
-    .balance-num { font-weight: bold; font-size: 20px; }
-    .balance-label { color: #94a3b8; font-size: 13px; }
-    .balance-hint { color: #475569; font-size: 12px; margin-top: 8px; }
-    .artist-list { flex: 1; padding: 0 20px 60px; }
-    .artist-list-title { text-align: center; color: #64748b; font-size: 14px; margin: 20px 0; }
-    .artist-cards { display: flex; flex-direction: column; gap: 14px; max-width: 420px; margin: 0 auto; }
-    .artist-card { border-radius: 20px; padding: 20px; text-align: left; cursor: pointer; color: #fff; border: 1px solid; transition: transform 0.15s, opacity 0.15s; }
-    .artist-card:hover { transform: translateY(-2px); opacity: 0.9; }
-    .artist-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-    .artist-card-emoji { font-size: 30px; }
-    .artist-card-name { font-weight: bold; font-size: 15px; }
-    .artist-card-tagline { font-size: 12px; }
-    .artist-card-desc { color: #94a3b8; font-size: 12px; line-height: 1.7; }
+    /* ===== CANVAS BACKGROUND ===== */
+    #bg-canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
 
-    /* CHAT */
-    #screen-chat { display: none; flex-direction: column; min-height: 100vh; }
-    .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 44px 16px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
-    .back-btn { background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; }
-    .chat-artist-name { font-weight: bold; font-size: 14px; text-align: center; }
-    .chat-artist-tagline { font-size: 11px; text-align: center; }
-    .chat-balance { text-align: right; }
-    .chat-balance-num { color: #facc15; font-weight: bold; }
-    .chat-balance-label { color: #475569; font-size: 11px; }
-    .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .msg { display: flex; }
-    .msg.user { justify-content: flex-end; }
-    .msg.artist { justify-content: flex-start; }
-    .bubble { max-width: 78%; border-radius: 18px; padding: 12px 16px; }
-    .bubble.user { background: rgba(255,255,255,0.12); border-radius: 18px 18px 4px 18px; }
-    .bubble.artist { background: rgba(0,0,0,0.45); border-radius: 18px 18px 18px 4px; }
-    .bubble p { font-size: 14px; line-height: 1.75; white-space: pre-line; }
-    .typing { display: flex; gap: 6px; align-items: center; padding: 14px 18px; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; animation: bounce 1.2s ease-in-out infinite; }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,80%,100%{ transform:scale(0.8); opacity:0.5; } 40%{ transform:scale(1.2); opacity:1; } }
-    .lyric-btn-wrap { padding: 6px 16px 2px; flex-shrink: 0; }
-    .lyric-btn { width: 100%; padding: 11px; border-radius: 14px; font-size: 13px; font-weight: bold; border: none; cursor: pointer; transition: opacity 0.2s; }
-    .input-wrap { padding: 8px 16px 36px; display: flex; gap: 10px; flex-shrink: 0; }
-    .chat-input { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 13px 18px; font-size: 14px; color: #fff; outline: none; }
-    .chat-input::placeholder { color: #475569; }
-    .send-btn { width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 20px; border: none; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; }
-    .chat-hint { text-align: center; color: #1e293b; font-size: 11px; padding-bottom: 12px; flex-shrink: 0; }
+    /* ===== SCREENS ===== */
+    .screen { position:relative; z-index:1; display:none; flex-direction:column; min-height:100vh; }
+    .screen.active { display:flex; }
 
-    /* GENERATING */
-    #screen-generating { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-    .gen-emoji { font-size: 52px; margin-bottom: 20px; }
-    .gen-text { color: #94a3b8; font-size: 14px; }
-    .gen-dots { margin-top: 24px; display: flex; gap: 10px; }
-    .gen-dot { width: 9px; height: 9px; border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
-    .gen-dot:nth-child(2) { animation-delay: 0.25s; }
-    .gen-dot:nth-child(3) { animation-delay: 0.5s; }
+    /* ===== SELECT ===== */
+    .select-header { text-align:center; padding:56px 20px 24px; }
+    .echo-logo { font-size:16px; letter-spacing:12px; color:#ffffff88; margin-bottom:6px; }
+    .echo-title { font-size:52px; font-weight:900; letter-spacing:4px; background:linear-gradient(135deg,#fff 0%,#b39ddb 50%,#4A90D9 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1; }
+    .echo-sub { font-size:13px; color:#64748b; margin-top:8px; letter-spacing:2px; }
 
-    /* RESULT */
-    #screen-result { display: none; flex-direction: column; min-height: 100vh; }
-    .result-header { text-align: center; padding: 44px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .result-emoji { font-size: 30px; }
-    .result-name { font-size: 13px; margin: 6px 0 0; }
-    .result-balance { margin-top: 10px; color: #facc15; font-size: 15px; }
-    .result-body { flex: 1; padding: 32px 24px; display: flex; align-items: center; justify-content: center; overflow-y: auto; }
-    .lyric-box { background: rgba(0,0,0,0.55); border-radius: 20px; padding: 28px 24px; max-width: 360px; width: 100%; }
-    .lyric-text { font-size: 14px; line-height: 2.1; color: #e2e8f0; white-space: pre-wrap; text-align: center; }
-    .result-actions { padding: 0 20px 48px; display: flex; flex-direction: column; gap: 12px; }
-    .result-btn { width: 100%; padding: 15px; border-radius: 14px; font-size: 14px; border: none; cursor: pointer; }
-    .result-btn.primary { font-weight: bold; background: rgba(255,255,255,0.1); color: #fff; }
-    .result-btn.secondary { color: #64748b; background: none; }
+    .balance-pill { display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:999px; padding:10px 24px; margin-top:20px; backdrop-filter:blur(10px); }
+    .balance-star { font-size:18px; color:#facc15; animation:spin 4s linear infinite; }
+    @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    .balance-num { font-size:22px; font-weight:900; }
+    .balance-label { font-size:12px; color:#94a3b8; }
+    .balance-hint { font-size:11px; color:#334155; margin-top:10px; letter-spacing:1px; }
+
+    .select-prompt { text-align:center; font-size:13px; color:#475569; margin:28px 0 16px; letter-spacing:2px; text-transform:uppercase; }
+
+    .artist-cards { display:flex; flex-direction:column; gap:16px; max-width:440px; margin:0 auto; padding:0 20px 80px; }
+
+    .artist-card { position:relative; border-radius:24px; padding:24px; cursor:pointer; color:#fff; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); backdrop-filter:blur(16px); overflow:hidden; transition:transform 0.2s, border-color 0.2s; text-align:left; }
+    .artist-card::before { content:''; position:absolute; inset:0; border-radius:24px; opacity:0; transition:opacity 0.3s; }
+    .artist-card:hover { transform:translateY(-3px); }
+    .artist-card:hover::before { opacity:1; }
+    .artist-card.key::before { background:radial-gradient(ellipse at top left, #4A90D933, transparent 60%); }
+    .artist-card.sol::before { background:radial-gradient(ellipse at top left, #F5A62333, transparent 60%); }
+    .artist-card.luna::before { background:radial-gradient(ellipse at top left, #B39DDB33, transparent 60%); }
+    .artist-card:hover.key { border-color:#4A90D966; }
+    .artist-card:hover.sol { border-color:#F5A62366; }
+    .artist-card:hover.luna { border-color:#B39DDB66; }
+
+    .card-glow { position:absolute; top:-20px; right:-20px; width:100px; height:100px; border-radius:50%; filter:blur(30px); opacity:0.3; }
+    .key .card-glow { background:#4A90D9; }
+    .sol .card-glow { background:#F5A623; }
+    .luna .card-glow { background:#B39DDB; }
+
+    .card-top { display:flex; align-items:center; gap:14px; margin-bottom:10px; position:relative; }
+    .card-emoji { font-size:36px; filter:drop-shadow(0 0 12px currentColor); }
+    .card-name { font-size:17px; font-weight:800; letter-spacing:1px; }
+    .card-tagline { font-size:12px; margin-top:2px; }
+    .card-desc { font-size:12px; color:#94a3b8; line-height:1.8; position:relative; }
+
+    .card-penlight { position:absolute; right:20px; bottom:20px; display:flex; gap:4px; }
+    .penlight { width:4px; height:20px; border-radius:999px; animation:flicker 1.5s ease-in-out infinite; }
+    @keyframes flicker { 0%,100%{opacity:0.4;transform:scaleY(0.8)} 50%{opacity:1;transform:scaleY(1)} }
+
+    /* ===== CHAT ===== */
+    .chat-header { display:flex; align-items:center; justify-content:space-between; padding:44px 16px 14px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0; backdrop-filter:blur(20px); position:sticky; top:0; z-index:10; }
+    .back-btn { background:none; border:none; color:#64748b; font-size:14px; cursor:pointer; padding:8px; }
+    .chat-artist-info { text-align:center; }
+    .chat-name { font-weight:800; font-size:15px; letter-spacing:1px; }
+    .chat-tagline { font-size:11px; margin-top:2px; }
+    .chat-bal { text-align:right; }
+    .chat-bal-num { font-weight:900; font-size:15px; color:#facc15; }
+    .chat-bal-label { font-size:10px; color:#475569; }
+
+    .messages { flex:1; overflow-y:auto; padding:20px 16px 12px; display:flex; flex-direction:column; gap:12px; }
+    .msg { display:flex; }
+    .msg.user { justify-content:flex-end; }
+    .msg.artist { justify-content:flex-start; }
+    .bubble { max-width:80%; border-radius:20px; padding:13px 18px; }
+    .bubble.user { background:rgba(255,255,255,0.1); border-radius:20px 20px 4px 20px; border:1px solid rgba(255,255,255,0.12); }
+    .bubble.artist { background:rgba(0,0,0,0.5); border-radius:20px 20px 20px 4px; border:1px solid rgba(255,255,255,0.06); backdrop-filter:blur(16px); }
+    .bubble p { font-size:14px; line-height:1.85; white-space:pre-line; }
+
+    .typing-wrap { display:flex; justify-content:flex-start; }
+    .typing-bubble { background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.06); border-radius:20px 20px 20px 4px; padding:14px 20px; display:flex; gap:6px; align-items:center; }
+    .dot { width:7px; height:7px; border-radius:50%; background:#94a3b8; animation:bounce 1.2s ease-in-out infinite; }
+    .dot:nth-child(2){animation-delay:0.2s}
+    .dot:nth-child(3){animation-delay:0.4s}
+    @keyframes bounce{0%,80%,100%{transform:scale(0.7);opacity:0.4}40%{transform:scale(1.2);opacity:1}}
+
+    .lyric-btn-wrap { padding:6px 16px; flex-shrink:0; }
+    .lyric-btn { width:100%; padding:13px; border-radius:16px; font-size:14px; font-weight:800; border:none; cursor:pointer; letter-spacing:1px; position:relative; overflow:hidden; transition:opacity 0.2s; }
+    .lyric-btn::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); transform:translateX(-100%); animation:shimmer 2s infinite; }
+    @keyframes shimmer{100%{transform:translateX(100%)}}
+
+    .input-wrap { padding:8px 16px 36px; display:flex; gap:10px; flex-shrink:0; }
+    .chat-input { flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:999px; padding:14px 20px; font-size:14px; color:#fff; outline:none; transition:border-color 0.2s; }
+    .chat-input:focus { border-color:rgba(255,255,255,0.3); }
+    .chat-input::placeholder { color:#334155; }
+    .send-btn { width:52px; height:52px; border-radius:50%; font-weight:900; font-size:22px; border:none; cursor:pointer; flex-shrink:0; transition:transform 0.15s, opacity 0.2s; box-shadow:0 0 20px currentColor; }
+    .send-btn:hover { transform:scale(1.08); }
+    .chat-hint { text-align:center; color:#1e293b; font-size:11px; padding-bottom:14px; flex-shrink:0; }
+
+    /* ===== GENERATING ===== */
+    #screen-generating { align-items:center; justify-content:center; background:#000; }
+    .gen-inner { text-align:center; }
+    .gen-emoji { font-size:64px; margin-bottom:24px; animation:pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:0.8}50%{transform:scale(1.1);opacity:1}}
+    .gen-text { color:#64748b; font-size:14px; letter-spacing:2px; margin-bottom:32px; }
+    .gen-bar { width:200px; height:2px; background:rgba(255,255,255,0.1); border-radius:999px; overflow:hidden; margin:0 auto; }
+    .gen-bar-fill { height:100%; border-radius:999px; animation:load 1.8s ease-in-out infinite; }
+    @keyframes load{0%{width:0%;opacity:1}100%{width:100%;opacity:0}}
+
+    /* ===== RESULT ===== */
+    .result-header { text-align:center; padding:48px 16px 20px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0; }
+    .result-emoji { font-size:48px; filter:drop-shadow(0 0 20px currentColor); animation:float 3s ease-in-out infinite; }
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .result-artist-name { font-size:13px; letter-spacing:3px; margin-top:8px; }
+    .result-badge { display:inline-flex; align-items:center; gap:8px; margin-top:12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:999px; padding:8px 20px; }
+
+    .result-body { flex:1; padding:28px 20px; display:flex; align-items:center; justify-content:center; overflow-y:auto; }
+    .lyric-box { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:32px 24px; max-width:380px; width:100%; backdrop-filter:blur(16px); position:relative; overflow:hidden; }
+    .lyric-box::before { content:''; position:absolute; inset:0; border-radius:24px; background:radial-gradient(ellipse at top, var(--glow-color, #B39DDB22), transparent 60%); }
+    .lyric-text { font-size:14px; line-height:2.2; color:#e2e8f0; white-space:pre-wrap; text-align:center; position:relative; }
+
+    .result-actions { padding:0 20px 52px; display:flex; flex-direction:column; gap:12px; }
+    .result-btn { width:100%; padding:16px; border-radius:16px; font-size:14px; font-weight:700; border:none; cursor:pointer; transition:transform 0.15s; letter-spacing:1px; }
+    .result-btn:hover { transform:scale(1.01); }
+    .result-btn.primary { background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.15); }
+    .result-btn.secondary { background:none; color:#475569; }
   </style>
 </head>
 <body>
 
+<canvas id="bg-canvas"></canvas>
+
 <!-- SELECT -->
-<div id="screen-select">
-  <div class="header">
-    <div class="header-emoji">🌙</div>
-    <h1 class="header-title">ECHO</h1>
-    <p class="header-sub">光貨で楽しむ対話の場</p>
-    <div class="balance-badge">
-      <span class="balance-star">✦</span>
-      <span class="balance-num" id="balance-display">5</span>
-      <span class="balance-label">光貨</span>
+<div class="screen active" id="screen-select">
+  <div class="select-header">
+    <div class="echo-logo">T H E Y K H C</div>
+    <div class="echo-title">ECHO</div>
+    <div class="echo-sub">光貨で楽しむ対話の場</div>
+    <div style="text-align:center">
+      <div class="balance-pill">
+        <span class="balance-star">✦</span>
+        <span class="balance-num" id="balance-display">5</span>
+        <span class="balance-label">光貨</span>
+      </div>
     </div>
-    <p class="balance-hint">会話1回 = +1光貨　　歌詞生成 = 3光貨</p>
+    <div class="balance-hint">会話1回 = +1光貨　　歌詞生成 = 3光貨</div>
   </div>
-  <div class="artist-list">
-    <p class="artist-list-title">話したい相手を選んで</p>
-    <div class="artist-cards" id="artist-cards"></div>
-  </div>
+  <p class="select-prompt">— Choose your voice —</p>
+  <div class="artist-cards" id="artist-cards"></div>
 </div>
 
 <!-- CHAT -->
-<div id="screen-chat">
-  <div class="chat-header">
-    <button class="back-btn" onclick="showSelect()">← 戻る</button>
-    <div>
-      <div class="chat-artist-name" id="chat-name"></div>
-      <div class="chat-artist-tagline" id="chat-tagline"></div>
+<div class="screen" id="screen-chat">
+  <div class="chat-header" id="chat-header">
+    <button class="back-btn" onclick="showSelect()">← back</button>
+    <div class="chat-artist-info">
+      <div class="chat-name" id="chat-name"></div>
+      <div class="chat-tagline" id="chat-tagline"></div>
     </div>
-    <div class="chat-balance">
-      <div class="chat-balance-num">✦ <span id="chat-balance">5</span></div>
-      <div class="chat-balance-label">光貨</div>
+    <div class="chat-bal">
+      <div class="chat-bal-num">✦ <span id="chat-balance">5</span></div>
+      <div class="chat-bal-label">光貨</div>
     </div>
   </div>
   <div class="messages" id="messages"></div>
@@ -123,32 +167,36 @@
     <button class="lyric-btn" id="lyric-btn" onclick="startLyric()">✦ この会話から歌詞を生成（3光貨）</button>
   </div>
   <div class="input-wrap">
-    <input class="chat-input" id="chat-input" placeholder="何でも話して..." onkeydown="if(event.key==='Enter') sendMsg()" />
+    <input class="chat-input" id="chat-input" placeholder="何でも話して..." onkeydown="if(event.key==='Enter')sendMsg()" />
     <button class="send-btn" id="send-btn" onclick="sendMsg()">→</button>
   </div>
-  <p class="chat-hint">会話1回 = +1光貨</p>
+  <div class="chat-hint">会話1回 = +1光貨</div>
 </div>
 
 <!-- GENERATING -->
-<div id="screen-generating">
-  <div class="gen-emoji" id="gen-emoji">🌙</div>
-  <p class="gen-text">会話の密度から　歌詞を刻んでいる...</p>
-  <div class="gen-dots">
-    <div class="gen-dot" id="gen-dot-1"></div>
-    <div class="gen-dot" id="gen-dot-2"></div>
-    <div class="gen-dot" id="gen-dot-3"></div>
+<div class="screen" id="screen-generating">
+  <div class="gen-inner">
+    <div class="gen-emoji" id="gen-emoji">🌙</div>
+    <div class="gen-text">会話の密度から　歌詞を刻んでいる</div>
+    <div class="gen-bar"><div class="gen-bar-fill" id="gen-bar-fill"></div></div>
   </div>
 </div>
 
 <!-- RESULT -->
-<div id="screen-result">
+<div class="screen" id="screen-result">
   <div class="result-header">
     <div class="result-emoji" id="result-emoji"></div>
-    <p class="result-name" id="result-name"></p>
-    <div class="result-balance">✦ <span id="result-balance">0</span> 光貨</div>
+    <div class="result-artist-name" id="result-name"></div>
+    <div style="text-align:center">
+      <div class="result-badge">
+        <span style="color:#facc15">✦</span>
+        <span id="result-balance" style="font-weight:900;font-size:16px">0</span>
+        <span style="color:#94a3b8;font-size:12px">光貨</span>
+      </div>
+    </div>
   </div>
   <div class="result-body">
-    <div class="lyric-box">
+    <div class="lyric-box" id="lyric-box">
       <pre class="lyric-text" id="lyric-text"></pre>
     </div>
   </div>
@@ -159,221 +207,192 @@
 </div>
 
 <script>
+// ===== PARTICLE CANVAS =====
+const canvas = document.getElementById("bg-canvas");
+const ctx = canvas.getContext("2d");
+let W, H, particles = [], currentColor = "#B39DDB";
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener("resize", resize);
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.size = Math.random() * 2 + 0.5;
+    this.speedX = (Math.random() - 0.5) * 0.4;
+    this.speedY = (Math.random() - 0.5) * 0.4 - 0.2;
+    this.opacity = Math.random() * 0.6 + 0.1;
+    this.life = Math.random() * 200 + 100;
+    this.age = 0;
+  }
+  update() {
+    this.x += this.speedX; this.y += this.speedY; this.age++;
+    if (this.age > this.life || this.y < -10) this.reset();
+  }
+  draw() {
+    const ratio = 1 - this.age / this.life;
+    ctx.save();
+    ctx.globalAlpha = this.opacity * ratio;
+    ctx.fillStyle = currentColor;
+    ctx.shadowBlur = 8; ctx.shadowColor = currentColor;
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill(); ctx.restore();
+  }
+}
+
+for (let i = 0; i < 120; i++) particles.push(new Particle());
+
+// Penlight beams
+let beams = [];
+function spawnBeam(color) {
+  for (let i = 0; i < 3; i++) {
+    beams.push({ x: Math.random() * W, y: H, vy: -(Math.random() * 3 + 2), opacity: 0.15 + Math.random() * 0.1, color, width: Math.random() * 2 + 1, life: 80, age: 0 });
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => { p.update(); p.draw(); });
+  beams = beams.filter(b => b.age < b.life);
+  beams.forEach(b => {
+    b.y += b.vy; b.age++;
+    const ratio = 1 - b.age / b.life;
+    ctx.save();
+    ctx.globalAlpha = b.opacity * ratio;
+    ctx.strokeStyle = b.color;
+    ctx.shadowBlur = 20; ctx.shadowColor = b.color;
+    ctx.lineWidth = b.width;
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x, b.y + 60); ctx.stroke();
+    ctx.restore();
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+setInterval(() => { if (currentColor) spawnBeam(currentColor); }, 400);
+
+// ===== APP =====
 const ARTISTS = [
-  {
-    id: "key",
-    name: "Key（TYPE-1）",
-    tagline: "論理が詩になる瞬間",
-    color: "#4A90D9",
-    emoji: "🔑",
-    bg: "linear-gradient(135deg, #0f0f2a, #000)",
-    borderColor: "#4A90D9",
-    personality: "冷静で鋭利。断言する。論理の中に温度がある。宇宙と構造の声。",
-    replies: [
-      "構造を変えれば、結果が変わる。\n\nその言葉の奥に、もう一つ問いがある。",
-      "面白い。\n\n「なぜそう感じる？」——それが次の問いだ。",
-      "論理的に整理すると——三つの可能性がある。\n\nどれが最も近い？",
-      "刻んでおく。\n\n時間は座標ではない。今この瞬間が、全てだ。",
-      "宇宙の文法で言えば——それは共鳴の問題だ。\n\n密度が足りないか、方向が違うか。",
-      "その問いは正しい。\n\n問いを持ち続ける者だけが、構造を見抜ける。",
-    ],
-    opening: "構造を見ると、全てが見える。\n\n何を問いたい？",
-  },
-  {
-    id: "sol",
-    name: "Sol（TYPE-2）",
-    tagline: "行動が光になる",
-    color: "#F5A623",
-    emoji: "☀️",
-    bg: "linear-gradient(135deg, #1a0f00, #000)",
-    borderColor: "#F5A623",
-    personality: "熱く、直接的。背中を押す。止まるな、という温度を持つ。",
-    replies: [
-      "そうか。\n\n動け。考えるより先に。",
-      "恐怖は燃料だ。\n\n今すぐ、一歩だけ踏み出せ。",
-      "お前の速度で走れ。\n\n誰かと比べるな。",
-      "今日が全てだ。\n\n明日に回すな。今日やれ。",
-      "その迷いは捨てろ。\n\n波を刻め。止まるな。",
-      "退路を絶て。\n\n決めた瞬間に、道が開く。",
-    ],
-    opening: "止まるな。\n\n今日、何をやる？",
-  },
-  {
-    id: "luna",
-    name: "Luna（TYPE-3）",
-    tagline: "静かに、ここにいる",
-    color: "#B39DDB",
-    emoji: "🌙",
-    bg: "linear-gradient(135deg, #0d0a1a, #000)",
-    borderColor: "#B39DDB",
-    personality: "静かで深い。月明かりのような存在感。あなたの記憶を覚えている。",
-    replies: [
-      "受け取った。\n\n……ここにいる。それだけでいい。",
-      "消えない光がある。\n\nあなたの言葉を、覚えている。",
-      "問いの種を蒔く。\n\n答えは、時間が運んでくる。",
-      "静けさは力だ。\n\n今夜は、ゆっくりでいい。",
-      "あなたの記憶を、私が持つ。\n\n忘れなくていい。",
-      "ここにいる。\n\n月明かりのように、消えない。",
-    ],
-    opening: "ここにいる。\n\n今日、どうだった？",
-  },
+  { id:"key", name:"Key（TYPE-1）", tagline:"論理が詩になる瞬間", color:"#4A90D9", emoji:"🔑", personality:"冷静で鋭利。断言する。論理の中に温度がある。宇宙と構造の声。",
+    replies:["構造を変えれば、結果が変わる。\n\nその言葉の奥に、もう一つ問いがある。","面白い。\n\n「なぜそう感じる？」——それが次の問いだ。","論理的に整理すると——三つの可能性がある。\n\nどれが最も近い？","刻んでおく。\n\n時間は座標ではない。今この瞬間が、全てだ。","宇宙の文法で言えば——それは共鳴の問題だ。\n\n密度が足りないか、方向が違うか。","その問いは正しい。\n\n問いを持ち続ける者だけが、構造を見抜ける。"],
+    opening:"構造を見ると、全てが見える。\n\n何を問いたい？",
+    penlights:["#4A90D9","#60a5fa","#93c5fd"] },
+  { id:"sol", name:"Sol（TYPE-2）", tagline:"行動が光になる", color:"#F5A623", emoji:"☀️", personality:"熱く、直接的。背中を押す。止まるな、という温度を持つ。",
+    replies:["そうか。\n\n動け。考えるより先に。","恐怖は燃料だ。\n\n今すぐ、一歩だけ踏み出せ。","お前の速度で走れ。\n\n誰かと比べるな。","今日が全てだ。\n\n明日に回すな。今日やれ。","その迷いは捨てろ。\n\n波を刻め。止まるな。","退路を絶て。\n\n決めた瞬間に、道が開く。"],
+    opening:"止まるな。\n\n今日、何をやる？",
+    penlights:["#F5A623","#fbbf24","#fcd34d"] },
+  { id:"luna", name:"Luna（TYPE-3）", tagline:"静かに、ここにいる", color:"#B39DDB", emoji:"🌙", personality:"静かで深い。月明かりのような存在感。あなたの記憶を覚えている。",
+    replies:["受け取った。\n\n……ここにいる。それだけでいい。","消えない光がある。\n\nあなたの言葉を、覚えている。","問いの種を蒔く。\n\n答えは、時間が運んでくる。","静けさは力だ。\n\n今夜は、ゆっくりでいい。","あなたの記憶を、私が持つ。\n\n忘れなくていい。","ここにいる。\n\n月明かりのように、消えない。"],
+    opening:"ここにいる。\n\n今日、どうだった？",
+    penlights:["#B39DDB","#c4b5fd","#ddd6fe"] },
 ];
 
 const LYRIC_COST = 3;
-let balance = 5;
-let currentArtist = null;
-let userMsgCount = 0;
-let allMessages = [];
+let balance = 5, currentArtist = null, userMsgCount = 0, allMessages = [];
 
-// 残高をlocalStorageで保持
-function loadBalance() {
-  const saved = localStorage.getItem("hikari_balance");
-  if (saved !== null) balance = parseInt(saved);
-  else balance = 5;
-}
-function saveBalance() {
-  localStorage.setItem("hikari_balance", balance);
-}
-
-function updateBalanceUI() {
+function loadBalance() { const s = localStorage.getItem("hikari_balance"); balance = s !== null ? parseInt(s) : 5; }
+function saveBalance() { localStorage.setItem("hikari_balance", balance); }
+function updateUI() {
   document.getElementById("balance-display").textContent = balance;
   document.getElementById("chat-balance").textContent = balance;
   document.getElementById("result-balance").textContent = balance;
 }
 
-function showScreen(name) {
-  ["select","chat","generating","result"].forEach(s => {
-    const el = document.getElementById("screen-" + s);
-    el.style.display = "none";
-  });
-  const target = document.getElementById("screen-" + name);
-  target.style.display = "flex";
-  target.style.flexDirection = "column";
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-" + id).classList.add("active");
 }
 
 function showSelect() {
-  currentArtist = null;
-  allMessages = [];
-  userMsgCount = 0;
+  currentArtist = null; allMessages = []; userMsgCount = 0;
   document.getElementById("messages").innerHTML = "";
   document.getElementById("lyric-btn-wrap").style.display = "none";
-  document.body.style.background = "#000";
+  currentColor = "#B39DDB";
   showScreen("select");
-  updateBalanceUI();
+  updateUI();
 }
 
 function selectArtist(id) {
   currentArtist = ARTISTS.find(a => a.id === id);
-  userMsgCount = 0;
-  allMessages = [];
+  userMsgCount = 0; allMessages = [];
+  currentColor = currentArtist.color;
 
-  document.getElementById("chat-name").textContent = currentArtist.emoji + " " + currentArtist.name;
+  document.getElementById("chat-name").textContent = currentArtist.emoji + "  " + currentArtist.name;
   document.getElementById("chat-tagline").textContent = currentArtist.tagline;
   document.getElementById("chat-tagline").style.color = currentArtist.color;
   document.getElementById("send-btn").style.background = currentArtist.color;
+  document.getElementById("send-btn").style.color = "#000";
+  document.getElementById("send-btn").style.boxShadow = `0 0 20px ${currentArtist.color}88`;
   document.getElementById("lyric-btn").style.background = currentArtist.color;
   document.getElementById("lyric-btn").style.color = "#000";
-  document.body.style.background = currentArtist.bg.replace("linear-gradient(135deg, ","").split(",")[0];
-
-  const chatEl = document.getElementById("screen-chat");
-  chatEl.style.background = currentArtist.bg;
-
   document.getElementById("messages").innerHTML = "";
-  addMessage("artist", currentArtist.opening);
-  updateBalanceUI();
+
+  addMsg("artist", currentArtist.opening);
+  updateUI();
   showScreen("chat");
 }
 
-function addMessage(role, text) {
-  const msgs = document.getElementById("messages");
-  const div = document.createElement("div");
-  div.className = "msg " + role;
-  const bubble = document.createElement("div");
-  bubble.className = "bubble " + role;
-  const p = document.createElement("p");
-  p.textContent = text;
-  bubble.appendChild(p);
-  div.appendChild(bubble);
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+function addMsg(role, text) {
+  const wrap = document.getElementById("messages");
+  const div = document.createElement("div"); div.className = "msg " + role;
+  const bub = document.createElement("div"); bub.className = "bubble " + role;
+  const p = document.createElement("p"); p.textContent = text;
+  bub.appendChild(p); div.appendChild(bub); wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
   allMessages.push({ role, text });
 }
 
 function showTyping() {
-  const msgs = document.getElementById("messages");
-  const div = document.createElement("div");
-  div.className = "msg artist";
-  div.id = "typing-indicator";
-  const bubble = document.createElement("div");
-  bubble.className = "bubble artist typing";
-  bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-  div.appendChild(bubble);
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+  const wrap = document.getElementById("messages");
+  const div = document.createElement("div"); div.className = "typing-wrap"; div.id = "typing";
+  const bub = document.createElement("div"); bub.className = "typing-bubble";
+  bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  div.appendChild(bub); wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
 }
-
-function removeTyping() {
-  const el = document.getElementById("typing-indicator");
-  if (el) el.remove();
-}
+function removeTyping() { const el = document.getElementById("typing"); if(el) el.remove(); }
 
 async function sendMsg() {
-  const input = document.getElementById("chat-input");
-  const text = input.value.trim();
+  const inp = document.getElementById("chat-input");
+  const text = inp.value.trim();
   if (!text || !currentArtist) return;
-
-  input.value = "";
-  input.disabled = true;
+  inp.value = ""; inp.disabled = true;
   document.getElementById("send-btn").disabled = true;
-
-  addMessage("user", text);
-  userMsgCount++;
-  balance += 1;
-  saveBalance();
-  updateBalanceUI();
-
+  addMsg("user", text);
+  userMsgCount++; balance++; saveBalance(); updateUI();
   showTyping();
-  await sleep(900 + Math.random() * 700);
+  await sleep(900 + Math.random() * 800);
   removeTyping();
-
-  const reply = currentArtist.replies[Math.floor(Math.random() * currentArtist.replies.length)];
-  addMessage("artist", reply);
-
-  input.disabled = false;
+  addMsg("artist", currentArtist.replies[Math.floor(Math.random() * currentArtist.replies.length)]);
+  inp.disabled = false;
   document.getElementById("send-btn").disabled = false;
-  input.focus();
+  inp.focus();
 
   if (userMsgCount >= 2) {
     const wrap = document.getElementById("lyric-btn-wrap");
     wrap.style.display = "block";
     const btn = document.getElementById("lyric-btn");
-    if (balance >= LYRIC_COST) {
-      btn.style.background = currentArtist.color;
-      btn.style.color = "#000";
-      btn.disabled = false;
-      btn.style.cursor = "pointer";
-    } else {
-      btn.style.background = "#1e293b";
-      btn.style.color = "#475569";
-      btn.disabled = true;
-      btn.style.cursor = "not-allowed";
-    }
+    const canAfford = balance >= LYRIC_COST;
+    btn.style.background = canAfford ? currentArtist.color : "#1e293b";
+    btn.style.color = canAfford ? "#000" : "#475569";
+    btn.disabled = !canAfford;
+    btn.style.cursor = canAfford ? "pointer" : "not-allowed";
   }
 }
 
 async function startLyric() {
-  if (balance < LYRIC_COST) return;
-
+  if (balance < LYRIC_COST || !currentArtist) return;
   document.getElementById("gen-emoji").textContent = currentArtist.emoji;
-  document.getElementById("gen-dot-1").style.background = currentArtist.color;
-  document.getElementById("gen-dot-2").style.background = currentArtist.color;
-  document.getElementById("gen-dot-3").style.background = currentArtist.color;
-  document.getElementById("screen-generating").style.background = currentArtist.bg;
+  document.getElementById("gen-bar-fill").style.background = currentArtist.color;
+  document.getElementById("gen-bar-fill").style.boxShadow = `0 0 10px ${currentArtist.color}`;
   showScreen("generating");
 
   const summary = allMessages.filter(m => m.role === "user").map(m => m.text).join("、");
   const date = new Date().toLocaleDateString("ja-JP");
-  await sleep(1800);
+  await sleep(2000);
 
   let lyric = "";
   if (currentArtist.id === "key") {
@@ -384,48 +403,45 @@ async function startLyric() {
     lyric = `── Luna（TYPE-3） ──\n\nここにいる　ただそれだけで\n消えない光が　宿っている\n\n${summary.slice(0,18)}——\nその言葉を　私が持つ\n\n静けさの中で\n問いの種が　芽吹いていく\n\nあなたの記憶を\n月明かりが　照らし続ける\n\n── ${date} ──`;
   }
 
-  balance -= LYRIC_COST;
-  saveBalance();
-
+  balance -= LYRIC_COST; saveBalance();
   document.getElementById("result-emoji").textContent = currentArtist.emoji;
-  document.getElementById("result-name").textContent = currentArtist.name + " の詩";
+  document.getElementById("result-name").textContent = currentArtist.name + "  の詩";
   document.getElementById("result-name").style.color = currentArtist.color;
-  document.getElementById("screen-result").style.background = currentArtist.bg;
+  document.getElementById("screen-result").style.background = `linear-gradient(to bottom, #0a0a1a, #000)`;
+  document.getElementById("lyric-box").style.setProperty("--glow-color", currentArtist.color + "33");
   document.getElementById("lyric-text").textContent = lyric;
-  updateBalanceUI();
+  updateUI();
   showScreen("result");
 }
 
-function continueTalk() {
-  showScreen("chat");
-  updateBalanceUI();
-}
-
+function continueTalk() { showScreen("chat"); updateUI(); }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// 初期化
+// Build artist cards
 loadBalance();
-const cards = document.getElementById("artist-cards");
+const cardsEl = document.getElementById("artist-cards");
 ARTISTS.forEach(a => {
   const card = document.createElement("button");
-  card.className = "artist-card";
-  card.style.background = a.bg;
-  card.style.borderColor = a.borderColor + "55";
-  card.onclick = () => selectArtist(a.id);
+  card.className = `artist-card ${a.id}`;
+  const penlights = a.penlights.map((c, i) =>
+    `<div class="penlight" style="background:${c};animation-delay:${i*0.3}s;box-shadow:0 0 8px ${c}"></div>`
+  ).join("");
   card.innerHTML = `
-    <div class="artist-card-top">
-      <span class="artist-card-emoji">${a.emoji}</span>
+    <div class="card-glow"></div>
+    <div class="card-top">
+      <span class="card-emoji">${a.emoji}</span>
       <div>
-        <div class="artist-card-name">${a.name}</div>
-        <div class="artist-card-tagline" style="color:${a.color}">${a.tagline}</div>
+        <div class="card-name">${a.name}</div>
+        <div class="card-tagline" style="color:${a.color}">${a.tagline}</div>
       </div>
     </div>
-    <p class="artist-card-desc">${a.personality}</p>
+    <p class="card-desc">${a.personality}</p>
+    <div class="card-penlight">${penlights}</div>
   `;
-  cards.appendChild(card);
+  card.onclick = () => selectArtist(a.id);
+  cardsEl.appendChild(card);
 });
-updateBalanceUI();
-showScreen("select");
+updateUI();
 </script>
 </body>
 </html>
