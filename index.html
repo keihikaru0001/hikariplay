@@ -100,13 +100,15 @@
     .artist-card:hover .card-arrow { color:#ffffffaa; transform:translateX(4px); }
 
     /* ====== CHAT ====== */
-    #screen-chat { background:transparent; }
+    #screen-chat { background:transparent; overflow:hidden; }
+
+    /* 上部ヘッダー */
     .chat-header {
       display:flex; align-items:center; justify-content:space-between;
       padding:44px 20px 14px;
       border-bottom:1px solid rgba(255,255,255,0.06);
-      background:rgba(0,0,0,0.6); backdrop-filter:blur(24px);
-      flex-shrink:0; position:sticky; top:0; z-index:10;
+      background:rgba(0,0,0,0.55); backdrop-filter:blur(24px);
+      flex-shrink:0; z-index:10;
     }
     .back-btn { background:none; border:none; color:#64748b; font-size:14px; cursor:pointer; padding:8px 12px; border-radius:999px; transition:background 0.2s; }
     .back-btn:hover { background:rgba(255,255,255,0.06); }
@@ -117,16 +119,22 @@
     .chat-bal-n { font-weight:900; font-size:16px; color:#facc15; }
     .chat-bal-l { font-size:10px; color:#475569; }
 
+    /* メッセージ — 中央カラム */
     .messages {
-      flex:1; overflow-y:auto; padding:20px 16px 12px;
-      display:flex; flex-direction:column; gap:14px;
+      flex:1; overflow-y:auto; padding:24px 0 16px;
+      display:flex; flex-direction:column; gap:16px;
+      align-items:center;        /* 横方向は中央揃え */
     }
-    .msg { display:flex; }
+    .msg {
+      display:flex;
+      width:100%; max-width:680px;
+      padding:0 20px;
+    }
     .msg.user   { justify-content:flex-end; }
     .msg.artist { justify-content:flex-start; }
     .bubble {
-      max-width:80%; border-radius:22px; padding:14px 20px;
-      font-size:14px; line-height:1.9; white-space:pre-line;
+      max-width:72%; border-radius:22px; padding:14px 20px;
+      font-size:15px; line-height:1.9; white-space:pre-line;
     }
     .bubble.user {
       background:rgba(255,255,255,0.1);
@@ -139,7 +147,10 @@
       border-radius:22px 22px 22px 4px;
       backdrop-filter:blur(20px);
     }
-    .typing-row { display:flex; justify-content:flex-start; }
+    .typing-row {
+      display:flex; width:100%; max-width:680px; padding:0 20px;
+      justify-content:flex-start;
+    }
     .typing-bub {
       background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.07);
       border-radius:22px 22px 22px 4px; padding:16px 22px;
@@ -149,9 +160,14 @@
     .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
     @keyframes bop{0%,80%,100%{transform:scale(0.7);opacity:0.4}40%{transform:scale(1.3);opacity:1}}
 
-    .lyric-btn-wrap { padding:8px 16px; flex-shrink:0; }
+    /* 歌詞ボタン — 中央カラム */
+    .lyric-btn-wrap {
+      padding:8px 0 4px; flex-shrink:0;
+      display:flex; justify-content:center;
+    }
     .lyric-btn {
-      width:100%; padding:15px; border-radius:18px;
+      width:100%; max-width:680px; margin:0 20px;
+      padding:15px; border-radius:18px;
       font-size:14px; font-weight:900; border:none; cursor:pointer;
       letter-spacing:2px; position:relative; overflow:hidden;
       transition:opacity 0.2s, transform 0.15s;
@@ -164,21 +180,33 @@
     }
     @keyframes shim{100%{transform:translateX(100%)}}
 
-    .input-wrap { padding:10px 16px 40px; display:flex; gap:10px; flex-shrink:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(20px); }
+    /* 入力エリア — 画面中央に固定 */
+    .input-area-outer {
+      flex-shrink:0;
+      padding:12px 20px 36px;
+      background:rgba(0,0,0,0.35);
+      backdrop-filter:blur(24px);
+      border-top:1px solid rgba(255,255,255,0.06);
+      display:flex; justify-content:center;
+    }
+    .input-area-inner {
+      width:100%; max-width:680px;
+      display:flex; gap:10px; align-items:center;
+    }
     .chat-input {
-      flex:1; background:rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.15); border-radius:999px;
-      padding:15px 22px; font-size:14px; color:#fff; outline:none;
+      flex:1; background:rgba(255,255,255,0.07);
+      border:1px solid rgba(255,255,255,0.18); border-radius:999px;
+      padding:16px 24px; font-size:15px; color:#fff; outline:none;
       transition:border-color 0.2s, box-shadow 0.2s;
     }
-    .chat-input:focus { border-color:rgba(255,255,255,0.35); box-shadow:0 0 20px rgba(255,255,255,0.05); }
+    .chat-input:focus { border-color:rgba(255,255,255,0.4); box-shadow:0 0 24px rgba(255,255,255,0.06); }
     .chat-input::placeholder { color:#334155; }
     .send-btn {
-      width:54px; height:54px; border-radius:50%; font-weight:900; font-size:24px;
+      width:54px; height:54px; border-radius:50%; font-weight:900; font-size:22px;
       border:none; cursor:pointer; flex-shrink:0; transition:transform 0.15s;
     }
     .send-btn:hover { transform:scale(1.1); }
-    .chat-hint { text-align:center; font-size:11px; color:#1e293b; padding-bottom:8px; flex-shrink:0; }
+    .chat-hint { text-align:center; font-size:11px; color:#1e293b; padding-bottom:4px; flex-shrink:0; }
 
     /* ====== GENERATING ====== */
     #screen-generating { align-items:center; justify-content:center; background:rgba(0,0,0,0.7); backdrop-filter:blur(30px); }
@@ -259,9 +287,11 @@
   <div class="lyric-btn-wrap" id="lyric-wrap" style="display:none">
     <button class="lyric-btn" id="lyric-btn" onclick="doLyric()">✦ この会話から歌詞を生成（3光貨）</button>
   </div>
-  <div class="input-wrap">
-    <input class="chat-input" id="chat-in" placeholder="何でも話して..." onkeydown="if(event.key==='Enter')send()"/>
-    <button class="send-btn" id="send-btn" onclick="send()">→</button>
+  <div class="input-area-outer">
+    <div class="input-area-inner">
+      <input class="chat-input" id="chat-in" placeholder="何でも話して..." onkeydown="if(event.key==='Enter')send()"/>
+      <button class="send-btn" id="send-btn" onclick="send()">→</button>
+    </div>
   </div>
   <div class="chat-hint">会話1回 = +1光貨</div>
 </div>
